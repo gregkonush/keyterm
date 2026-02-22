@@ -27,7 +27,7 @@ targets:
           - UIInterfaceOrientationLandscapeRight
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.keyterm
+        PRODUCT_BUNDLE_IDENTIFIER: ai.proompteng.keyterm
         PRODUCT_NAME: KeyTerm
         SWIFT_VERSION: 5.0
         CODE_SIGN_STYLE: Automatic
@@ -56,7 +56,7 @@ targets:
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).KeyboardViewController"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.keyterm.keyboard
+        PRODUCT_BUNDLE_IDENTIFIER: ai.proompteng.keyterm.keyboard
         PRODUCT_NAME: KeyTermKeyboard
         SWIFT_VERSION: 5.0
         CODE_SIGN_STYLE: Automatic
@@ -75,4 +75,3 @@ schemes:
       config: Debug
     archive:
       config: Release
-

@@ -204,7 +204,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.keyterm;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.proompteng.keyterm;
 				PRODUCT_NAME = KeyTerm;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -224,7 +224,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.keyterm.keyboard;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.proompteng.keyterm.keyboard;
 				PRODUCT_NAME = KeyTermKeyboard;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -364,7 +364,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.keyterm.keyboard;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.proompteng.keyterm.keyboard;
 				PRODUCT_NAME = KeyTermKeyboard;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -385,7 +385,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.keyterm;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.proompteng.keyterm;
 				PRODUCT_NAME = KeyTerm;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
