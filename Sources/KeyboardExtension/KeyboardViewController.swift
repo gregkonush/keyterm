@@ -53,11 +53,11 @@ private extension KeyboardViewController {
         ])
 
         let rows: [[(String, KeyAction)]] = [
-            [("Esc", .escape), ("Ctrl", .toggleControl), ("Tab", .tab), ("↑", .arrowUp), ("↓", .arrowDown), ("←", .arrowLeft), ("→", .arrowRight)],
+            [("Esc", .escape), ("Ctrl", .toggleControl), ("Tab", .tab), ("Up", .arrowUp), ("Down", .arrowDown), ("Left", .arrowLeft), ("Right", .arrowRight)],
             [("q", .text("q")), ("w", .text("w")), ("e", .text("e")), ("r", .text("r")), ("t", .text("t")), ("y", .text("y")), ("u", .text("u")), ("i", .text("i")), ("o", .text("o")), ("p", .text("p"))],
-            [("a", .text("a")), ("s", .text("s")), ("d", .text("d")), ("f", .text("f")), ("g", .text("g")), ("h", .text("h")), ("j", .text("j")), ("k", .text("k")), ("l", .text("l")), ("⌫", .backspace)],
-            [("z", .text("z")), ("x", .text("x")), ("c", .text("c")), ("v", .text("v")), ("b", .text("b")), ("n", .text("n")), ("m", .text("m")), ("-", .text("-")), ("/", .text("/")), ("↵", .enter)],
-            [("🌐", .nextKeyboard), ("[", .text("[")), ("]", .text("]")), ("{", .text("{")), ("}", .text("}")), (" ", .space), (".", .text(".")), (":", .text(":")), (";", .text(";")), ("\"", .text("\""))]
+            [("a", .text("a")), ("s", .text("s")), ("d", .text("d")), ("f", .text("f")), ("g", .text("g")), ("h", .text("h")), ("j", .text("j")), ("k", .text("k")), ("l", .text("l")), ("Bksp", .backspace)],
+            [("z", .text("z")), ("x", .text("x")), ("c", .text("c")), ("v", .text("v")), ("b", .text("b")), ("n", .text("n")), ("m", .text("m")), ("-", .text("-")), ("/", .text("/")), ("Enter", .enter)],
+            [("Next", .nextKeyboard), ("[", .text("[")), ("]", .text("]")), ("{", .text("{")), ("}", .text("}")), ("Space", .space), (".", .text(".")), (":", .text(":")), (";", .text(";")), ("\"", .text("\""))]
         ]
 
         for rowSpec in rows {
