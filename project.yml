@@ -1,0 +1,78 @@
+name: KeyTerm
+options:
+  minimumXcodeGenVersion: 2.38.0
+  deploymentTarget:
+    iOS: 16.0
+configs:
+  Debug: debug
+  Release: release
+targets:
+  KeyTerm:
+    type: application
+    platform: iOS
+    deploymentTarget: 16.0
+    sources:
+      - path: Sources/HostApp
+    info:
+      path: Sources/HostApp/Info.plist
+      properties:
+        CFBundleDisplayName: KeyTerm
+        CFBundleName: KeyTerm
+        UILaunchScreen: {}
+        UIRequiredDeviceCapabilities:
+          - arm64
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.keyterm
+        PRODUCT_NAME: KeyTerm
+        SWIFT_VERSION: 5.0
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: 1
+    dependencies:
+      - target: KeyTermKeyboard
+
+  KeyTermKeyboard:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: 16.0
+    sources:
+      - path: Sources/KeyboardExtension
+    info:
+      path: Sources/KeyboardExtension/Info.plist
+      properties:
+        CFBundleDisplayName: KeyTerm Keyboard
+        CFBundleName: KeyTermKeyboard
+        NSExtension:
+          NSExtensionAttributes:
+            IsASCIICapable: true
+            PrefersRightToLeft: false
+            PrimaryLanguage: en-US
+            RequestsOpenAccess: false
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).KeyboardViewController"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.keyterm.keyboard
+        PRODUCT_NAME: KeyTermKeyboard
+        SWIFT_VERSION: 5.0
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+        TARGETED_DEVICE_FAMILY: 1
+        APPLICATION_EXTENSION_API_ONLY: YES
+schemes:
+  KeyTerm:
+    build:
+      targets:
+        KeyTerm: all
+        KeyTermKeyboard: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    archive:
+      config: Release
+

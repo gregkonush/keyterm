@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/
+*.xcuserstate
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+!default.mode1v3
+!default.mode2v3
+!default.perspectivev3
+
+# SwiftPM
+.build/
+Package.resolved
+
