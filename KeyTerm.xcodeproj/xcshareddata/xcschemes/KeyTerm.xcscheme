@@ -53,6 +53,17 @@
          </BuildableReference>
       </MacroExpansion>
       <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "FEA751156633340CF6B52581"
+               BuildableName = "KeyTermKeyboardTests.xctest"
+               BlueprintName = "KeyTermKeyboardTests"
+               ReferencedContainer = "container:KeyTerm.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

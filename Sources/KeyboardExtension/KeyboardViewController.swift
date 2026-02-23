@@ -94,6 +94,7 @@ final class KeyboardViewController: UIInputViewController {
     private let rootStack = UIStackView()
 
     private var actionByButtonTag: [Int: KeyAction] = [:]
+    private var keyStyleByTag: [Int: KeyStyle] = [:]
     private var nextTag = 0
 
     private weak var globeButton: UIButton?
@@ -122,6 +123,17 @@ final class KeyboardViewController: UIInputViewController {
         updateKeyFonts()
         globeButton?.isHidden = !needsInputModeSwitchKey
     }
+
+    override func textDidChange(_ textInput: UITextInput?) {
+        super.textDidChange(textInput)
+        applyTheme()
+        globeButton?.isHidden = !needsInputModeSwitchKey
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        applyTheme()
+    }
 }
 
 private extension KeyboardViewController {
@@ -132,7 +144,7 @@ private extension KeyboardViewController {
         rootStack.distribution = .fill
         rootStack.translatesAutoresizingMaskIntoConstraints = false
 
-        view.backgroundColor = keyboardBackgroundColor()
+        applyTheme()
         view.addSubview(rootStack)
 
         NSLayoutConstraint.activate([
@@ -151,6 +163,7 @@ private extension KeyboardViewController {
         }
 
         actionByButtonTag = [:]
+        keyStyleByTag = [:]
         nextTag = 0
         keyButtons.removeAll()
         functionLayerTextButtons.removeAll()
@@ -165,6 +178,7 @@ private extension KeyboardViewController {
             rootStack.addArrangedSubview(makeRow(from: rowSpec))
         }
 
+        applyTheme()
         updateModifierKeyAppearance()
         updateShiftKeyAppearance()
         updateFunctionLayerLegends()
@@ -390,7 +404,7 @@ private extension KeyboardViewController {
         button.backgroundColor = keyBackgroundColor(for: key.style)
         button.layer.cornerRadius = key.style == .utility ? 7 : 8
         button.layer.shadowColor = UIColor.black.cgColor
-        button.layer.shadowOpacity = traitCollection.userInterfaceStyle == .dark ? 0.22 : 0.06
+        button.layer.shadowOpacity = resolvedInterfaceStyle() == .dark ? 0.22 : 0.06
         button.layer.shadowRadius = 0
         button.layer.shadowOffset = CGSize(width: 0, height: 1)
         button.setTitleColor(.label, for: .normal)
@@ -413,6 +427,7 @@ private extension KeyboardViewController {
         let tag = nextTag
         nextTag += 1
         actionByButtonTag[tag] = key.action
+        keyStyleByTag[tag] = key.style
         button.tag = tag
         button.addTarget(self, action: #selector(onKeyTap(_:)), for: .touchUpInside)
 
@@ -441,40 +456,54 @@ private extension KeyboardViewController {
         return button
     }
 
+    func resolvedInterfaceStyle() -> UIUserInterfaceStyle {
+        KeyboardThemePalette.resolvedInterfaceStyle(
+            keyboardAppearance: textDocumentProxy.keyboardAppearance ?? .default,
+            traitStyle: traitCollection.userInterfaceStyle
+        )
+    }
+
     func keyboardBackgroundColor() -> UIColor {
-        UIColor { traitCollection in
-            if traitCollection.userInterfaceStyle == .dark {
-                return UIColor(red: 0.20, green: 0.21, blue: 0.24, alpha: 1.0)
-            }
-            return UIColor(red: 0.68, green: 0.69, blue: 0.72, alpha: 1.0)
-        }
+        KeyboardThemePalette.backgroundColor(for: resolvedInterfaceStyle())
     }
 
     func keyBackgroundColor(for style: KeyStyle) -> UIColor {
-        UIColor { traitCollection in
-            switch style {
-            case .character:
-                return traitCollection.userInterfaceStyle == .dark
-                    ? UIColor(red: 0.34, green: 0.35, blue: 0.39, alpha: 1.0)
-                    : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
-            case .utility:
-                return traitCollection.userInterfaceStyle == .dark
-                    ? UIColor(red: 0.46, green: 0.47, blue: 0.53, alpha: 1.0)
-                    : UIColor(red: 0.80, green: 0.81, blue: 0.84, alpha: 1.0)
-            case .action:
-                return traitCollection.userInterfaceStyle == .dark
-                    ? UIColor(red: 0.38, green: 0.39, blue: 0.44, alpha: 1.0)
-                    : UIColor(red: 0.88, green: 0.89, blue: 0.92, alpha: 1.0)
-            }
-        }
+        KeyboardThemePalette.keyColor(
+            for: keyVisualStyle(from: style),
+            interfaceStyle: resolvedInterfaceStyle()
+        )
     }
 
     func activeModifierColor() -> UIColor {
-        UIColor { traitCollection in
-            traitCollection.userInterfaceStyle == .dark
-                ? UIColor(red: 0.30, green: 0.57, blue: 1.0, alpha: 1.0)
-                : UIColor(red: 0.19, green: 0.47, blue: 0.95, alpha: 1.0)
+        KeyboardThemePalette.activeModifierColor(for: resolvedInterfaceStyle())
+    }
+
+    func keyVisualStyle(from style: KeyStyle) -> KeyboardThemePalette.KeyVisualStyle {
+        switch style {
+        case .character:
+            return .character
+        case .utility:
+            return .utility
+        case .action:
+            return .action
         }
+    }
+
+    func applyTheme() {
+        view.backgroundColor = keyboardBackgroundColor()
+        rootStack.backgroundColor = keyboardBackgroundColor()
+
+        let isDark = resolvedInterfaceStyle() == .dark
+        for button in keyButtons {
+            if let style = keyStyleByTag[button.tag] {
+                button.backgroundColor = keyBackgroundColor(for: style)
+            }
+            button.setTitleColor(.label, for: .normal)
+            button.tintColor = .label
+            button.layer.shadowOpacity = isDark ? 0.22 : 0.06
+        }
+        updateModifierKeyAppearance()
+        updateShiftKeyAppearance()
     }
 
     func updateKeyFonts() {

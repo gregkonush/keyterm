@@ -71,6 +71,21 @@ targets:
         SKIP_INSTALL: YES
         TARGETED_DEVICE_FAMILY: 1
         APPLICATION_EXTENSION_API_ONLY: YES
+
+  KeyTermKeyboardTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: 16.0
+    sources:
+      - path: Tests/KeyboardExtensionTests
+      - path: Sources/KeyboardExtension/KeyboardThemePalette.swift
+    dependencies:
+      - target: KeyTermKeyboard
+    settings:
+      base:
+        SWIFT_VERSION: 5.0
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
 schemes:
   KeyTerm:
     build:
@@ -81,5 +96,7 @@ schemes:
       config: Debug
     test:
       config: Debug
+      targets:
+        - name: KeyTermKeyboardTests
     archive:
       config: Release
