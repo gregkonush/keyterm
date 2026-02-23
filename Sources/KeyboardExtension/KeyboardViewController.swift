@@ -13,7 +13,7 @@ final class KeyboardViewController: UIInputViewController {
         static let bottomInset: CGFloat = 6
         static let rowSpacing: CGFloat = 6
         static let keySpacing: CGFloat = 6
-        static let minKeyboardHeight: CGFloat = 236
+        static let keyboardHeight: CGFloat = 236
         static let topRowHeight: CGFloat = 28
         static let rowHeight: CGFloat = 42
         static let bottomRowHeight: CGFloat = 46
@@ -107,6 +107,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private var keyButtons: [UIButton] = []
     private var functionLayerTextButtons: [String: UIButton] = [:]
+    private var keyboardHeightConstraint: NSLayoutConstraint?
 
     private var currentLayer: KeyboardLayer = .letters
     private var isShiftEnabled = false
@@ -116,8 +117,15 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        inputView?.allowsSelfSizing = false
+        installKeyboardHeightConstraintIfNeeded()
         configureRootStack()
         renderKeyboard()
+    }
+
+    override func updateViewConstraints() {
+        installKeyboardHeightConstraintIfNeeded()
+        super.updateViewConstraints()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -159,9 +167,20 @@ private extension KeyboardViewController {
             rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.horizontalInset),
             rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.horizontalInset),
             rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: Layout.topInset),
-            rootStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomInset),
-            view.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.minKeyboardHeight)
+            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Layout.bottomInset)
         ])
+    }
+
+    func installKeyboardHeightConstraintIfNeeded() {
+        if let keyboardHeightConstraint {
+            keyboardHeightConstraint.constant = Layout.keyboardHeight
+            return
+        }
+
+        let constraint = view.heightAnchor.constraint(equalToConstant: Layout.keyboardHeight)
+        constraint.priority = UILayoutPriority(999)
+        constraint.isActive = true
+        keyboardHeightConstraint = constraint
     }
 
     func renderKeyboard() {
