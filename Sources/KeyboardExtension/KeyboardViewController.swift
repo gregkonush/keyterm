@@ -1,6 +1,22 @@
 import UIKit
 
 final class KeyboardViewController: UIInputViewController {
+    fileprivate enum KeyboardLayer {
+        case letters
+        case numbers
+        case symbols
+    }
+
+    fileprivate enum Layout {
+        static let outerInset: CGFloat = 6
+        static let rowSpacing: CGFloat = 6
+        static let keySpacing: CGFloat = 6
+        static let minKeyboardHeight: CGFloat = 236
+        static let topRowHeight: CGFloat = 28
+        static let rowHeight: CGFloat = 42
+        static let bottomRowHeight: CGFloat = 46
+    }
+
     fileprivate enum KeyAction {
         case text(String)
         case escape
@@ -13,89 +29,473 @@ final class KeyboardViewController: UIInputViewController {
         case enter
         case space
         case toggleControl
+        case toggleAlt
+        case toggleFunction
+        case toggleShift
+        case setLayer(KeyboardLayer)
         case nextKeyboard
+        case home
+        case end
+        case pageUp
+        case pageDown
     }
+
+    fileprivate enum KeyStyle {
+        case character
+        case utility
+        case action
+    }
+
+    fileprivate struct KeySpec {
+        let title: String?
+        let symbolName: String?
+        let accessibilityLabel: String
+        let action: KeyAction
+        let width: CGFloat
+        let style: KeyStyle
+
+        init(
+            title: String,
+            accessibilityLabel: String,
+            action: KeyAction,
+            width: CGFloat,
+            style: KeyStyle
+        ) {
+            self.title = title
+            self.symbolName = nil
+            self.accessibilityLabel = accessibilityLabel
+            self.action = action
+            self.width = width
+            self.style = style
+        }
+
+        init(
+            symbolName: String,
+            accessibilityLabel: String,
+            action: KeyAction,
+            width: CGFloat,
+            style: KeyStyle
+        ) {
+            self.title = nil
+            self.symbolName = symbolName
+            self.accessibilityLabel = accessibilityLabel
+            self.action = action
+            self.width = width
+            self.style = style
+        }
+    }
+
+    fileprivate struct RowSpec {
+        let sideInset: CGFloat
+        let minHeight: CGFloat
+        let keys: [KeySpec]
+    }
+
+    private let rootStack = UIStackView()
 
     private var actionByButtonTag: [Int: KeyAction] = [:]
     private var nextTag = 0
-    private weak var controlKeyButton: UIButton?
+
     private weak var globeButton: UIButton?
+    private weak var shiftButton: UIButton?
+    private weak var controlButton: UIButton?
+    private weak var altButton: UIButton?
+    private weak var fnButton: UIButton?
+
+    private var keyButtons: [UIButton] = []
+    private var functionLayerTextButtons: [String: UIButton] = [:]
+
+    private var currentLayer: KeyboardLayer = .letters
+    private var isShiftEnabled = false
     private var isControlEnabled = false
+    private var isAltEnabled = false
+    private var isFunctionEnabled = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        buildKeyboard()
+        configureRootStack()
+        renderKeyboard()
     }
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
+        updateKeyFonts()
         globeButton?.isHidden = !needsInputModeSwitchKey
     }
 }
 
 private extension KeyboardViewController {
-    func buildKeyboard() {
-        let root = UIStackView()
-        root.axis = .vertical
-        root.distribution = .fillEqually
-        root.spacing = 8
-        root.translatesAutoresizingMaskIntoConstraints = false
+    func configureRootStack() {
+        rootStack.axis = .vertical
+        rootStack.spacing = Layout.rowSpacing
+        rootStack.alignment = .fill
+        rootStack.distribution = .fill
+        rootStack.translatesAutoresizingMaskIntoConstraints = false
 
-        view.backgroundColor = UIColor(red: 0.1, green: 0.11, blue: 0.16, alpha: 1)
-        view.addSubview(root)
+        view.backgroundColor = keyboardBackgroundColor()
+        view.addSubview(rootStack)
 
         NSLayoutConstraint.activate([
-            root.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            root.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
-            root.topAnchor.constraint(equalTo: view.topAnchor, constant: 8),
-            root.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -8),
-            view.heightAnchor.constraint(greaterThanOrEqualToConstant: 260)
+            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.outerInset),
+            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.outerInset),
+            rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: Layout.outerInset),
+            rootStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.outerInset),
+            view.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.minKeyboardHeight)
         ])
+    }
 
-        let rows: [[(String, KeyAction)]] = [
-            [("Esc", .escape), ("Ctrl", .toggleControl), ("Tab", .tab), ("Up", .arrowUp), ("Down", .arrowDown), ("Left", .arrowLeft), ("Right", .arrowRight)],
-            [("q", .text("q")), ("w", .text("w")), ("e", .text("e")), ("r", .text("r")), ("t", .text("t")), ("y", .text("y")), ("u", .text("u")), ("i", .text("i")), ("o", .text("o")), ("p", .text("p"))],
-            [("a", .text("a")), ("s", .text("s")), ("d", .text("d")), ("f", .text("f")), ("g", .text("g")), ("h", .text("h")), ("j", .text("j")), ("k", .text("k")), ("l", .text("l")), ("Bksp", .backspace)],
-            [("z", .text("z")), ("x", .text("x")), ("c", .text("c")), ("v", .text("v")), ("b", .text("b")), ("n", .text("n")), ("m", .text("m")), ("-", .text("-")), ("/", .text("/")), ("Enter", .enter)],
-            [("Next", .nextKeyboard), ("[", .text("[")), ("]", .text("]")), ("{", .text("{")), ("}", .text("}")), ("Space", .space), (".", .text(".")), (":", .text(":")), (";", .text(";")), ("\"", .text("\""))]
+    func renderKeyboard() {
+        rootStack.arrangedSubviews.forEach {
+            rootStack.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+
+        actionByButtonTag = [:]
+        nextTag = 0
+        keyButtons.removeAll()
+        functionLayerTextButtons.removeAll()
+        globeButton = nil
+        shiftButton = nil
+        controlButton = nil
+        altButton = nil
+        fnButton = nil
+
+        rootStack.addArrangedSubview(makeTopUtilityRow())
+        currentRows().forEach { rowSpec in
+            rootStack.addArrangedSubview(makeRow(from: rowSpec))
+        }
+
+        updateModifierKeyAppearance()
+        updateShiftKeyAppearance()
+        updateFunctionLayerLegends()
+        updateKeyFonts()
+        globeButton?.isHidden = !needsInputModeSwitchKey
+    }
+
+    func makeTopUtilityRow() -> UIView {
+        let row = makeStackContainer(minHeight: Layout.topRowHeight)
+        let stack = row.subviews.compactMap { $0 as? UIStackView }.first
+
+        let specs: [KeySpec] = [
+            KeySpec(title: "Esc", accessibilityLabel: "Escape", action: .escape, width: 1.0, style: .utility),
+            KeySpec(title: "Ctrl", accessibilityLabel: "Control", action: .toggleControl, width: 1.0, style: .utility),
+            KeySpec(title: "Alt", accessibilityLabel: "Alt", action: .toggleAlt, width: 1.0, style: .utility),
+            KeySpec(title: "Tab", accessibilityLabel: "Tab", action: .tab, width: 1.0, style: .utility),
+            KeySpec(title: "Fn", accessibilityLabel: "Function", action: .toggleFunction, width: 1.0, style: .utility),
+            KeySpec(symbolName: "arrow.left", accessibilityLabel: "Left Arrow", action: .arrowLeft, width: 1.0, style: .utility),
+            KeySpec(symbolName: "arrow.down", accessibilityLabel: "Down Arrow", action: .arrowDown, width: 1.0, style: .utility),
+            KeySpec(symbolName: "arrow.up", accessibilityLabel: "Up Arrow", action: .arrowUp, width: 1.0, style: .utility),
+            KeySpec(symbolName: "arrow.right", accessibilityLabel: "Right Arrow", action: .arrowRight, width: 1.0, style: .utility)
         ]
 
-        for rowSpec in rows {
-            let row = UIStackView()
-            row.axis = .horizontal
-            row.spacing = 6
-            row.distribution = .fillEqually
-            row.alignment = .fill
+        applyRow(specs: specs, to: stack)
+        return row
+    }
 
-            for (title, action) in rowSpec {
-                let button = makeKeyButton(title: title, action: action)
-                if case .toggleControl = action {
-                    controlKeyButton = button
-                }
-                if case .nextKeyboard = action {
-                    globeButton = button
-                }
-                row.addArrangedSubview(button)
-            }
-
-            root.addArrangedSubview(row)
+    func currentRows() -> [RowSpec] {
+        switch currentLayer {
+        case .letters:
+            return letterRows()
+        case .numbers:
+            return numberRows()
+        case .symbols:
+            return symbolRows()
         }
     }
 
-    func makeKeyButton(title: String, action: KeyAction) -> UIButton {
+    func letterRows() -> [RowSpec] {
+        let first = RowSpec(sideInset: 0, minHeight: Layout.rowHeight, keys: characterKeys("qwertyuiop"))
+        let second = RowSpec(sideInset: 16, minHeight: Layout.rowHeight, keys: characterKeys("asdfghjkl"))
+
+        var thirdKeys: [KeySpec] = [
+            KeySpec(
+                symbolName: isShiftEnabled ? "shift.fill" : "shift",
+                accessibilityLabel: "Shift",
+                action: .toggleShift,
+                width: 1.25,
+                style: .utility
+            )
+        ]
+        thirdKeys.append(contentsOf: characterKeys("zxcvbnm"))
+        thirdKeys.append(
+            KeySpec(
+                symbolName: "delete.left",
+                accessibilityLabel: "Delete",
+                action: .backspace,
+                width: 1.25,
+                style: .utility
+            )
+        )
+
+        let third = RowSpec(sideInset: 4, minHeight: Layout.rowHeight, keys: thirdKeys)
+        let fourth = RowSpec(sideInset: 0, minHeight: Layout.bottomRowHeight, keys: bottomKeys(modeTitle: "123", modeAction: .setLayer(.numbers)))
+
+        return [first, second, third, fourth]
+    }
+
+    func numberRows() -> [RowSpec] {
+        let first = RowSpec(sideInset: 0, minHeight: Layout.rowHeight, keys: textKeys(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]))
+        let second = RowSpec(sideInset: 0, minHeight: Layout.rowHeight, keys: textKeys(["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""]))
+
+        var thirdKeys: [KeySpec] = [
+            KeySpec(title: "#+=", accessibilityLabel: "Symbols", action: .setLayer(.symbols), width: 1.45, style: .utility)
+        ]
+        thirdKeys.append(contentsOf: textKeys([".", ",", "?", "!", "'"]))
+        thirdKeys.append(
+            KeySpec(
+                symbolName: "delete.left",
+                accessibilityLabel: "Delete",
+                action: .backspace,
+                width: 1.2,
+                style: .utility
+            )
+        )
+
+        let third = RowSpec(sideInset: 4, minHeight: Layout.rowHeight, keys: thirdKeys)
+        let fourth = RowSpec(sideInset: 0, minHeight: Layout.bottomRowHeight, keys: bottomKeys(modeTitle: "ABC", modeAction: .setLayer(.letters)))
+
+        return [first, second, third, fourth]
+    }
+
+    func symbolRows() -> [RowSpec] {
+        let first = RowSpec(sideInset: 0, minHeight: Layout.rowHeight, keys: textKeys(["[", "]", "{", "}", "#", "%", "^", "*", "+", "="]))
+        let second = RowSpec(sideInset: 0, minHeight: Layout.rowHeight, keys: textKeys(["_", "\\", "|", "~", "<", ">", "€", "£", "¥", "•"]))
+
+        var thirdKeys: [KeySpec] = [
+            KeySpec(title: "123", accessibilityLabel: "Numbers", action: .setLayer(.numbers), width: 1.45, style: .utility)
+        ]
+        thirdKeys.append(contentsOf: textKeys([".", ",", "?", "!", "'"]))
+        thirdKeys.append(
+            KeySpec(
+                symbolName: "delete.left",
+                accessibilityLabel: "Delete",
+                action: .backspace,
+                width: 1.2,
+                style: .utility
+            )
+        )
+
+        let third = RowSpec(sideInset: 4, minHeight: Layout.rowHeight, keys: thirdKeys)
+        let fourth = RowSpec(sideInset: 0, minHeight: Layout.bottomRowHeight, keys: bottomKeys(modeTitle: "ABC", modeAction: .setLayer(.letters)))
+
+        return [first, second, third, fourth]
+    }
+
+    func characterKeys(_ characters: String) -> [KeySpec] {
+        characters.map { character in
+            let raw = String(character)
+            let display = isShiftEnabled ? raw.uppercased() : raw
+            return KeySpec(
+                title: display,
+                accessibilityLabel: raw.uppercased(),
+                action: .text(raw),
+                width: 1.0,
+                style: .character
+            )
+        }
+    }
+
+    func textKeys(_ texts: [String]) -> [KeySpec] {
+        texts.map { value in
+            KeySpec(
+                title: value,
+                accessibilityLabel: value,
+                action: .text(value),
+                width: 1.0,
+                style: .character
+            )
+        }
+    }
+
+    func bottomKeys(modeTitle: String, modeAction: KeyAction) -> [KeySpec] {
+        [
+            KeySpec(title: modeTitle, accessibilityLabel: modeTitle, action: modeAction, width: 1.55, style: .utility),
+            KeySpec(symbolName: "globe", accessibilityLabel: "Next Keyboard", action: .nextKeyboard, width: 1.05, style: .utility),
+            KeySpec(title: "space", accessibilityLabel: "Space", action: .space, width: 4.2, style: .action),
+            KeySpec(symbolName: "return.left", accessibilityLabel: "Return", action: .enter, width: 1.65, style: .utility)
+        ]
+    }
+
+    func makeRow(from rowSpec: RowSpec) -> UIView {
+        let container = makeStackContainer(minHeight: rowSpec.minHeight)
+        guard let stack = container.subviews.compactMap({ $0 as? UIStackView }).first else {
+            return container
+        }
+
+        let leadingSpacer = UIView()
+        leadingSpacer.backgroundColor = .clear
+        let trailingSpacer = UIView()
+        trailingSpacer.backgroundColor = .clear
+
+        stack.addArrangedSubview(leadingSpacer)
+        applyRow(specs: rowSpec.keys, to: stack)
+        stack.addArrangedSubview(trailingSpacer)
+
+        leadingSpacer.widthAnchor.constraint(equalToConstant: rowSpec.sideInset).isActive = true
+        trailingSpacer.widthAnchor.constraint(equalToConstant: rowSpec.sideInset).isActive = true
+
+        return container
+    }
+
+    func makeStackContainer(minHeight: CGFloat) -> UIView {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.spacing = Layout.keySpacing
+        stack.alignment = .fill
+        stack.distribution = .fill
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        container.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: container.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            container.heightAnchor.constraint(greaterThanOrEqualToConstant: minHeight)
+        ])
+
+        return container
+    }
+
+    func applyRow(specs: [KeySpec], to stack: UIStackView?) {
+        guard let stack else {
+            return
+        }
+
+        var baselineButton: UIButton?
+        var baselineWidth: CGFloat = 1.0
+
+        for spec in specs {
+            let button = makeKeyButton(for: spec)
+            stack.addArrangedSubview(button)
+
+            if let baselineButton {
+                button.widthAnchor.constraint(
+                    equalTo: baselineButton.widthAnchor,
+                    multiplier: spec.width / baselineWidth
+                ).isActive = true
+            } else {
+                baselineButton = button
+                baselineWidth = max(spec.width, 0.01)
+            }
+        }
+    }
+
+    func makeKeyButton(for key: KeySpec) -> UIButton {
         let button = UIButton(type: .system)
-        button.setTitle(title, for: .normal)
-        button.titleLabel?.font = UIFont.monospacedSystemFont(ofSize: 20, weight: .semibold)
-        button.backgroundColor = UIColor(red: 0.17, green: 0.18, blue: 0.25, alpha: 1)
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 8
+        button.backgroundColor = keyBackgroundColor(for: key.style)
+        button.layer.cornerRadius = key.style == .utility ? 7 : 8
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = traitCollection.userInterfaceStyle == .dark ? 0.22 : 0.06
+        button.layer.shadowRadius = 0
+        button.layer.shadowOffset = CGSize(width: 0, height: 1)
+        button.setTitleColor(.label, for: .normal)
+
+        if let title = key.title {
+            button.setTitle(title, for: .normal)
+        } else if let symbolName = key.symbolName {
+            let symbolSize: CGFloat = key.style == .utility ? 16 : 17
+            let imageConfig = UIImage.SymbolConfiguration(pointSize: symbolSize, weight: .semibold)
+            let image = UIImage(systemName: symbolName, withConfiguration: imageConfig)
+            button.setImage(image, for: .normal)
+            button.tintColor = .label
+        }
+
+        button.accessibilityLabel = key.accessibilityLabel
+        button.titleLabel?.lineBreakMode = .byClipping
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
+        button.titleLabel?.minimumScaleFactor = 0.7
 
         let tag = nextTag
         nextTag += 1
-        actionByButtonTag[tag] = action
+        actionByButtonTag[tag] = key.action
         button.tag = tag
         button.addTarget(self, action: #selector(onKeyTap(_:)), for: .touchUpInside)
+
+        keyButtons.append(button)
+
+        switch key.action {
+        case .toggleShift:
+            shiftButton = button
+        case .toggleControl:
+            controlButton = button
+        case .toggleAlt:
+            altButton = button
+        case .toggleFunction:
+            fnButton = button
+        case .nextKeyboard:
+            globeButton = button
+        case .text(let value):
+            let normalized = value.lowercased()
+            if functionLayerAction(for: normalized) != nil {
+                functionLayerTextButtons[normalized] = button
+            }
+        default:
+            break
+        }
+
         return button
+    }
+
+    func keyboardBackgroundColor() -> UIColor {
+        UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor(red: 0.20, green: 0.21, blue: 0.24, alpha: 1.0)
+            }
+            return UIColor(red: 0.68, green: 0.69, blue: 0.72, alpha: 1.0)
+        }
+    }
+
+    func keyBackgroundColor(for style: KeyStyle) -> UIColor {
+        UIColor { traitCollection in
+            switch style {
+            case .character:
+                return traitCollection.userInterfaceStyle == .dark
+                    ? UIColor(red: 0.34, green: 0.35, blue: 0.39, alpha: 1.0)
+                    : UIColor(red: 0.95, green: 0.95, blue: 0.97, alpha: 1.0)
+            case .utility:
+                return traitCollection.userInterfaceStyle == .dark
+                    ? UIColor(red: 0.46, green: 0.47, blue: 0.53, alpha: 1.0)
+                    : UIColor(red: 0.80, green: 0.81, blue: 0.84, alpha: 1.0)
+            case .action:
+                return traitCollection.userInterfaceStyle == .dark
+                    ? UIColor(red: 0.38, green: 0.39, blue: 0.44, alpha: 1.0)
+                    : UIColor(red: 0.88, green: 0.89, blue: 0.92, alpha: 1.0)
+            }
+        }
+    }
+
+    func activeModifierColor() -> UIColor {
+        UIColor { traitCollection in
+            traitCollection.userInterfaceStyle == .dark
+                ? UIColor(red: 0.30, green: 0.57, blue: 1.0, alpha: 1.0)
+                : UIColor(red: 0.19, green: 0.47, blue: 0.95, alpha: 1.0)
+        }
+    }
+
+    func updateKeyFonts() {
+        let width = view.bounds.width
+        let isCompact = width < 370
+        let topSize: CGFloat = isCompact ? 12 : 13
+        let keySize: CGFloat = isCompact ? 17 : 19
+        let utilitySize: CGFloat = isCompact ? 16 : 17
+
+        for button in keyButtons {
+            let title = button.title(for: .normal) ?? ""
+            if title.isEmpty {
+                continue
+            }
+
+            let isTopUtility = button == controlButton || button == altButton || button == fnButton || title == "Esc" || title == "Tab"
+            let isSystemKey = title == "space" || title == "123" || title == "ABC" || title == "#+="
+            let targetSize = isTopUtility ? topSize : (isSystemKey ? utilitySize : keySize)
+            let weight: UIFont.Weight = isTopUtility ? .semibold : .regular
+            button.titleLabel?.font = UIFont.systemFont(ofSize: targetSize, weight: weight)
+        }
     }
 
     @objc
@@ -127,43 +527,157 @@ private extension KeyboardViewController {
         case .enter:
             textDocumentProxy.insertText("\n")
         case .space:
-            insertText(" ")
+            textDocumentProxy.insertText(" ")
         case .toggleControl:
             isControlEnabled.toggle()
-            updateControlKeyAppearance()
+            if isControlEnabled {
+                isAltEnabled = false
+            }
+            updateModifierKeyAppearance()
+        case .toggleAlt:
+            isAltEnabled.toggle()
+            if isAltEnabled {
+                isControlEnabled = false
+            }
+            updateModifierKeyAppearance()
+        case .toggleFunction:
+            isFunctionEnabled.toggle()
+            updateModifierKeyAppearance()
+            updateFunctionLayerLegends()
+        case .toggleShift:
+            guard currentLayer == .letters else {
+                return
+            }
+            isShiftEnabled.toggle()
+            renderKeyboard()
+        case .setLayer(let layer):
+            currentLayer = layer
+            if layer != .letters {
+                isShiftEnabled = false
+            }
+            renderKeyboard()
         case .nextKeyboard:
             advanceToNextInputMode()
+        case .home:
+            textDocumentProxy.insertText("\u{001B}[H")
+        case .end:
+            textDocumentProxy.insertText("\u{001B}[F")
+        case .pageUp:
+            textDocumentProxy.insertText("\u{001B}[5~")
+        case .pageDown:
+            textDocumentProxy.insertText("\u{001B}[6~")
         }
     }
 
     func insertText(_ value: String) {
-        guard isControlEnabled else {
-            textDocumentProxy.insertText(value)
+        if isFunctionEnabled, let fnAction = functionLayerAction(for: value.lowercased()) {
+            apply(action: fnAction)
             return
         }
 
-        defer {
-            isControlEnabled = false
-            updateControlKeyAppearance()
-        }
-
-        guard value.count == 1, let scalar = value.unicodeScalars.first, scalar.isASCII else {
-            textDocumentProxy.insertText(value)
-            return
-        }
-
-        let ascii = UInt8(scalar.value)
-        let controlValue = ascii & 0x1F
-        if let controlScalar = UnicodeScalar(Int(controlValue)) {
-            textDocumentProxy.insertText(String(controlScalar))
+        let output: String
+        if currentLayer == .letters {
+            output = isShiftEnabled ? value.uppercased() : value.lowercased()
         } else {
-            textDocumentProxy.insertText(value)
+            output = value
+        }
+
+        if isControlEnabled {
+            defer {
+                isControlEnabled = false
+                updateModifierKeyAppearance()
+            }
+
+            guard output.count == 1, let scalar = output.unicodeScalars.first, scalar.isASCII else {
+                textDocumentProxy.insertText(output)
+                return
+            }
+
+            let ascii = UInt8(scalar.value)
+            let controlValue = ascii & 0x1F
+            if let controlScalar = UnicodeScalar(Int(controlValue)) {
+                textDocumentProxy.insertText(String(controlScalar))
+            } else {
+                textDocumentProxy.insertText(output)
+            }
+        } else if isAltEnabled {
+            defer {
+                isAltEnabled = false
+                updateModifierKeyAppearance()
+            }
+            textDocumentProxy.insertText("\u{001B}")
+            textDocumentProxy.insertText(output)
+        } else {
+            textDocumentProxy.insertText(output)
+        }
+
+        if currentLayer == .letters && isShiftEnabled {
+            isShiftEnabled = false
+            renderKeyboard()
         }
     }
 
-    func updateControlKeyAppearance() {
-        let activeColor = UIColor(red: 0.95, green: 0.62, blue: 0.18, alpha: 1)
-        let inactiveColor = UIColor(red: 0.17, green: 0.18, blue: 0.25, alpha: 1)
-        controlKeyButton?.backgroundColor = isControlEnabled ? activeColor : inactiveColor
+    func functionLayerAction(for value: String) -> KeyAction? {
+        switch value {
+        case "h":
+            return .arrowLeft
+        case "j":
+            return .arrowDown
+        case "k":
+            return .arrowUp
+        case "l":
+            return .arrowRight
+        case "u":
+            return .home
+        case "o":
+            return .end
+        case "i":
+            return .pageUp
+        case "p":
+            return .pageDown
+        default:
+            return nil
+        }
+    }
+
+    func updateModifierKeyAppearance() {
+        let active = activeModifierColor()
+
+        controlButton?.backgroundColor = isControlEnabled ? active : keyBackgroundColor(for: .utility)
+        controlButton?.setTitleColor(isControlEnabled ? .white : .label, for: .normal)
+
+        altButton?.backgroundColor = isAltEnabled ? active : keyBackgroundColor(for: .utility)
+        altButton?.setTitleColor(isAltEnabled ? .white : .label, for: .normal)
+
+        fnButton?.backgroundColor = isFunctionEnabled ? active : keyBackgroundColor(for: .utility)
+        fnButton?.setTitleColor(isFunctionEnabled ? .white : .label, for: .normal)
+    }
+
+    func updateShiftKeyAppearance() {
+        let active = activeModifierColor()
+        shiftButton?.backgroundColor = isShiftEnabled ? active : keyBackgroundColor(for: .utility)
+        shiftButton?.tintColor = isShiftEnabled ? .white : .label
+    }
+
+    func updateFunctionLayerLegends() {
+        let fnLegends: [String: String] = [
+            "h": "←",
+            "j": "↓",
+            "k": "↑",
+            "l": "→",
+            "u": "Home",
+            "o": "End",
+            "i": "Pg↑",
+            "p": "Pg↓"
+        ]
+
+        for (value, button) in functionLayerTextButtons {
+            if isFunctionEnabled, let legend = fnLegends[value] {
+                button.setTitle(legend, for: .normal)
+            } else {
+                button.setTitle(isShiftEnabled ? value.uppercased() : value.lowercased(), for: .normal)
+            }
+        }
+        updateKeyFonts()
     }
 }

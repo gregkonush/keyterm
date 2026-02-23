@@ -21,6 +21,12 @@ targets:
         UILaunchScreen: {}
         UIRequiredDeviceCapabilities:
           - arm64
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: "$(PRODUCT_MODULE_NAME).SceneDelegate"
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
@@ -31,6 +37,7 @@ targets:
         PRODUCT_NAME: KeyTerm
         SWIFT_VERSION: 5.0
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 2A7V9GG6H6
         TARGETED_DEVICE_FAMILY: 1
     dependencies:
       - target: KeyTermKeyboard
@@ -60,6 +67,7 @@ targets:
         PRODUCT_NAME: KeyTermKeyboard
         SWIFT_VERSION: 5.0
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: 2A7V9GG6H6
         SKIP_INSTALL: YES
         TARGETED_DEVICE_FAMILY: 1
         APPLICATION_EXTENSION_API_ONLY: YES
