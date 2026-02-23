@@ -490,10 +490,6 @@ private extension KeyboardViewController {
         return .light
     }
 
-    func keyboardBackgroundColor() -> UIColor {
-        KeyboardThemePalette.backgroundColor(for: resolvedInterfaceStyle())
-    }
-
     func keyBackgroundColor(for style: KeyStyle) -> UIColor {
         KeyboardThemePalette.keyColor(
             for: keyVisualStyle(from: style),
@@ -517,14 +513,12 @@ private extension KeyboardViewController {
     }
 
     func applyTheme() {
-        let background = keyboardBackgroundColor()
-        view.backgroundColor = background
-        view.isOpaque = true
-        inputView?.backgroundColor = background
-        inputView?.isOpaque = true
-        rootStack.backgroundColor = background
-        rootStack.arrangedSubviews.forEach { $0.backgroundColor = background }
-        applyContainerBackground(background)
+        view.backgroundColor = .clear
+        view.isOpaque = false
+        inputView?.backgroundColor = .clear
+        inputView?.isOpaque = false
+        rootStack.backgroundColor = .clear
+        rootStack.arrangedSubviews.forEach { $0.backgroundColor = .clear }
 
         let isDark = resolvedInterfaceStyle() == .dark
         for button in keyButtons {
@@ -537,41 +531,6 @@ private extension KeyboardViewController {
         }
         updateModifierKeyAppearance()
         updateShiftKeyAppearance()
-    }
-
-    func applyContainerBackground(_ color: UIColor) {
-        var container: UIView? = view
-        while let current = container {
-            if isKeyboardContainer(current) {
-                harmonizeBackground(in: current, color: color, depth: 2)
-            }
-            container = current.superview
-        }
-    }
-
-    func isKeyboardContainer(_ view: UIView) -> Bool {
-        let className = NSStringFromClass(type(of: view))
-        return className.contains("UIInput")
-            || className.contains("UIKeyboard")
-            || className.contains("UIKB")
-    }
-
-    func harmonizeBackground(in container: UIView, color: UIColor, depth: Int) {
-        guard depth >= 0 else {
-            return
-        }
-
-        container.backgroundColor = color
-        container.isOpaque = true
-
-        for subview in container.subviews {
-            if let effectView = subview as? UIVisualEffectView {
-                effectView.effect = nil
-            }
-            subview.backgroundColor = color
-            subview.isOpaque = true
-            harmonizeBackground(in: subview, color: color, depth: depth - 1)
-        }
     }
 
     func updateKeyFonts() {
