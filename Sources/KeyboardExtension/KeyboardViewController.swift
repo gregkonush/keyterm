@@ -14,8 +14,8 @@ final class KeyboardViewController: UIInputViewController {
         static let rowSpacing: CGFloat = 4
         static let keySpacing: CGFloat = 4
         static let topRowHeight: CGFloat = 24
-        static let rowHeight: CGFloat = 36
-        static let bottomRowHeight: CGFloat = 40
+        static let rowHeight: CGFloat = 44
+        static let bottomRowHeight: CGFloat = 46
     }
 
     fileprivate enum KeyAction {
@@ -161,7 +161,7 @@ private extension KeyboardViewController {
             rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.horizontalInset),
             rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.horizontalInset),
             rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: Layout.topInset),
-            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -Layout.bottomInset)
+            rootStack.bottomAnchor.constraint(lessThanOrEqualTo: view.bottomAnchor, constant: -Layout.bottomInset)
         ])
     }
 
@@ -363,6 +363,8 @@ private extension KeyboardViewController {
     func makeStackContainer(minHeight: CGFloat) -> UIView {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
+        container.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        container.setContentHuggingPriority(.defaultLow, for: .vertical)
 
         let stack = UIStackView()
         stack.axis = .horizontal
@@ -373,12 +375,16 @@ private extension KeyboardViewController {
 
         container.addSubview(stack)
 
+        let preferredHeight = container.heightAnchor.constraint(equalToConstant: minHeight)
+        // Keep row heights as preferred values so iOS can fit wrapper insets without hard conflicts.
+        preferredHeight.priority = UILayoutPriority(999)
+
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
             stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
             stack.topAnchor.constraint(equalTo: container.topAnchor),
             stack.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            container.heightAnchor.constraint(greaterThanOrEqualToConstant: minHeight)
+            preferredHeight
         ])
 
         return container

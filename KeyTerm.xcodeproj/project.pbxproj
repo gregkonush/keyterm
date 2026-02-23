@@ -8,12 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		00ECA9597CB911379E73A137 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B96BDD103299C23354355B /* SceneDelegate.swift */; };
+		1DE760A63D11F6E33A938E00 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */; };
 		41105AD68E3F8B9B8FCCAFD2 /* KeyboardThemePaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0546F10CD751F1BA8ABE6873 /* KeyboardThemePaletteTests.swift */; };
 		515F62E6C3CF69545049413D /* KeyboardThemePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC471F53D96D3888EB743F5F /* KeyboardThemePalette.swift */; };
 		67623F4DB7AFC83C07C46A99 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */; };
 		6D4BDEC5754C652423AEBAA3 /* KeyboardThemePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC471F53D96D3888EB743F5F /* KeyboardThemePalette.swift */; };
 		8AB7A03D0578760DB7C3F822 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171C8D560B933C293926382F /* AppDelegate.swift */; };
 		A20D9BC8DAC143A8B46CF0A7 /* SetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F90D9F5510E13267FC0115C /* SetupViewController.swift */; };
+		C729810433610CA3EA3EF5C6 /* KeyboardLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84B71F39BE5E3311416C44BC /* KeyboardLayoutTests.swift */; };
 		FBF1316F37211437F252F1DE /* KeyTermKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E84FBBBA2E403371A867D319 /* KeyTermKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -55,6 +57,7 @@
 		26423F5BBA8CBC1B5BBEA060 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		3F90D9F5510E13267FC0115C /* SetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupViewController.swift; sourceTree = "<group>"; };
 		6A49C1FD80D799B77D9E11FB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		84B71F39BE5E3311416C44BC /* KeyboardLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayoutTests.swift; sourceTree = "<group>"; };
 		92B96BDD103299C23354355B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		BC471F53D96D3888EB743F5F /* KeyboardThemePalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardThemePalette.swift; sourceTree = "<group>"; };
 		E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
@@ -86,6 +89,7 @@
 		95499CDE0465AF7FCA004019 /* KeyboardExtensionTests */ = {
 			isa = PBXGroup;
 			children = (
+				84B71F39BE5E3311416C44BC /* KeyboardLayoutTests.swift */,
 				0546F10CD751F1BA8ABE6873 /* KeyboardThemePaletteTests.swift */,
 			);
 			name = KeyboardExtensionTests;
@@ -236,8 +240,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C729810433610CA3EA3EF5C6 /* KeyboardLayoutTests.swift in Sources */,
 				6D4BDEC5754C652423AEBAA3 /* KeyboardThemePalette.swift in Sources */,
 				41105AD68E3F8B9B8FCCAFD2 /* KeyboardThemePaletteTests.swift in Sources */,
+				1DE760A63D11F6E33A938E00 /* KeyboardViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
