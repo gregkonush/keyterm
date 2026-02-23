@@ -79,6 +79,7 @@ targets:
     sources:
       - path: Tests/KeyboardExtensionTests
       - path: Sources/KeyboardExtension/KeyboardThemePalette.swift
+      - path: Sources/KeyboardExtension/TerminalEscapeSequences.swift
       - path: Sources/KeyboardExtension/KeyboardViewController.swift
     dependencies:
       - target: KeyTermKeyboard

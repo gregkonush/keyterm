@@ -204,7 +204,7 @@ private extension KeyboardViewController {
             KeySpec(title: "Ctrl", accessibilityLabel: "Control", action: .toggleControl, width: 1.0, style: .utility),
             KeySpec(title: "Alt", accessibilityLabel: "Alt", action: .toggleAlt, width: 1.0, style: .utility),
             KeySpec(title: "Tab", accessibilityLabel: "Tab", action: .tab, width: 1.0, style: .utility),
-            KeySpec(title: "Fn", accessibilityLabel: "Function", action: .toggleFunction, width: 1.0, style: .utility),
+            KeySpec(title: "Fn", accessibilityLabel: "Function and App Cursor Mode", action: .toggleFunction, width: 1.0, style: .utility),
             KeySpec(symbolName: "arrow.left", accessibilityLabel: "Left Arrow", action: .arrowLeft, width: 1.0, style: .utility),
             KeySpec(symbolName: "arrow.down", accessibilityLabel: "Down Arrow", action: .arrowDown, width: 1.0, style: .utility),
             KeySpec(symbolName: "arrow.up", accessibilityLabel: "Up Arrow", action: .arrowUp, width: 1.0, style: .utility),
@@ -593,13 +593,13 @@ private extension KeyboardViewController {
         case .tab:
             textDocumentProxy.insertText("\t")
         case .arrowUp:
-            textDocumentProxy.insertText("\u{001B}[A")
+            insertCursorKey(.up)
         case .arrowDown:
-            textDocumentProxy.insertText("\u{001B}[B")
+            insertCursorKey(.down)
         case .arrowLeft:
-            textDocumentProxy.insertText("\u{001B}[D")
+            insertCursorKey(.left)
         case .arrowRight:
-            textDocumentProxy.insertText("\u{001B}[C")
+            insertCursorKey(.right)
         case .backspace:
             textDocumentProxy.deleteBackward()
         case .enter:
@@ -637,9 +637,9 @@ private extension KeyboardViewController {
         case .nextKeyboard:
             advanceToNextInputMode()
         case .home:
-            textDocumentProxy.insertText("\u{001B}[H")
+            insertCursorKey(.home)
         case .end:
-            textDocumentProxy.insertText("\u{001B}[F")
+            insertCursorKey(.end)
         case .pageUp:
             textDocumentProxy.insertText("\u{001B}[5~")
         case .pageDown:
@@ -715,6 +715,27 @@ private extension KeyboardViewController {
             return .pageDown
         default:
             return nil
+        }
+    }
+
+    func insertCursorKey(_ key: TerminalEscapeSequences.CursorKey) {
+        var modifiers = TerminalEscapeSequences.Modifiers()
+        if isAltEnabled {
+            modifiers.insert(.alt)
+        }
+        if isControlEnabled {
+            modifiers.insert(.control)
+        }
+
+        let mode: TerminalEscapeSequences.CursorMode = isFunctionEnabled ? .application : .normal
+        let sequence = TerminalEscapeSequences.cursorKey(key, mode: mode, modifiers: modifiers)
+        textDocumentProxy.insertText(sequence)
+
+        // Keep Alt/Ctrl one-shot for navigation keys, same behavior as character keys.
+        if isAltEnabled || isControlEnabled {
+            isAltEnabled = false
+            isControlEnabled = false
+            updateModifierKeyAppearance()
         }
     }
 
