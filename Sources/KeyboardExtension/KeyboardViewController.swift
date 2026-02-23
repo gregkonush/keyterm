@@ -540,17 +540,37 @@ private extension KeyboardViewController {
     }
 
     func applyContainerBackground(_ color: UIColor) {
-        var container = view.superview
-        var depth = 0
-
-        while let current = container, depth < 3 {
-            current.backgroundColor = color
-            if let inputContainer = current as? UIInputView {
-                inputContainer.backgroundColor = color
-                inputContainer.isOpaque = true
+        var container: UIView? = view
+        while let current = container {
+            if isKeyboardContainer(current) {
+                harmonizeBackground(in: current, color: color, depth: 2)
             }
             container = current.superview
-            depth += 1
+        }
+    }
+
+    func isKeyboardContainer(_ view: UIView) -> Bool {
+        let className = NSStringFromClass(type(of: view))
+        return className.contains("UIInput")
+            || className.contains("UIKeyboard")
+            || className.contains("UIKB")
+    }
+
+    func harmonizeBackground(in container: UIView, color: UIColor, depth: Int) {
+        guard depth >= 0 else {
+            return
+        }
+
+        container.backgroundColor = color
+        container.isOpaque = true
+
+        for subview in container.subviews {
+            if let effectView = subview as? UIVisualEffectView {
+                effectView.effect = nil
+            }
+            subview.backgroundColor = color
+            subview.isOpaque = true
+            harmonizeBackground(in: subview, color: color, depth: depth - 1)
         }
     }
 
