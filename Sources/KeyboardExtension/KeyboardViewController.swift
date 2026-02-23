@@ -8,7 +8,9 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     fileprivate enum Layout {
-        static let outerInset: CGFloat = 6
+        static let horizontalInset: CGFloat = 6
+        static let topInset: CGFloat = 0
+        static let bottomInset: CGFloat = 6
         static let rowSpacing: CGFloat = 6
         static let keySpacing: CGFloat = 6
         static let minKeyboardHeight: CGFloat = 236
@@ -118,8 +120,14 @@ final class KeyboardViewController: UIInputViewController {
         renderKeyboard()
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        applyTheme()
+    }
+
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
+        applyTheme()
         updateKeyFonts()
         globeButton?.isHidden = !needsInputModeSwitchKey
     }
@@ -148,10 +156,10 @@ private extension KeyboardViewController {
         view.addSubview(rootStack)
 
         NSLayoutConstraint.activate([
-            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.outerInset),
-            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.outerInset),
-            rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: Layout.outerInset),
-            rootStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.outerInset),
+            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: Layout.horizontalInset),
+            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -Layout.horizontalInset),
+            rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: Layout.topInset),
+            rootStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -Layout.bottomInset),
             view.heightAnchor.constraint(greaterThanOrEqualToConstant: Layout.minKeyboardHeight)
         ])
     }
@@ -457,10 +465,29 @@ private extension KeyboardViewController {
     }
 
     func resolvedInterfaceStyle() -> UIUserInterfaceStyle {
-        KeyboardThemePalette.resolvedInterfaceStyle(
-            keyboardAppearance: textDocumentProxy.keyboardAppearance ?? .default,
-            traitStyle: traitCollection.userInterfaceStyle
+        let keyboardAppearance = textDocumentProxy.keyboardAppearance ?? .default
+        if keyboardAppearance == .default {
+            return resolvedTraitStyle()
+        }
+
+        return KeyboardThemePalette.resolvedInterfaceStyle(
+            keyboardAppearance: keyboardAppearance,
+            traitStyle: resolvedTraitStyle()
         )
+    }
+
+    func resolvedTraitStyle() -> UIUserInterfaceStyle {
+        let candidates: [UIUserInterfaceStyle] = [
+            view.window?.traitCollection.userInterfaceStyle ?? .unspecified,
+            inputView?.traitCollection.userInterfaceStyle ?? .unspecified,
+            traitCollection.userInterfaceStyle
+        ]
+
+        if let style = candidates.first(where: { $0 != .unspecified }) {
+            return style
+        }
+
+        return .light
     }
 
     func keyboardBackgroundColor() -> UIColor {
@@ -490,8 +517,14 @@ private extension KeyboardViewController {
     }
 
     func applyTheme() {
-        view.backgroundColor = keyboardBackgroundColor()
-        rootStack.backgroundColor = keyboardBackgroundColor()
+        let background = keyboardBackgroundColor()
+        view.backgroundColor = background
+        view.isOpaque = true
+        inputView?.backgroundColor = background
+        inputView?.isOpaque = true
+        rootStack.backgroundColor = background
+        rootStack.arrangedSubviews.forEach { $0.backgroundColor = background }
+        applyContainerBackground(background)
 
         let isDark = resolvedInterfaceStyle() == .dark
         for button in keyButtons {
@@ -504,6 +537,21 @@ private extension KeyboardViewController {
         }
         updateModifierKeyAppearance()
         updateShiftKeyAppearance()
+    }
+
+    func applyContainerBackground(_ color: UIColor) {
+        var container = view.superview
+        var depth = 0
+
+        while let current = container, depth < 3 {
+            current.backgroundColor = color
+            if let inputContainer = current as? UIInputView {
+                inputContainer.backgroundColor = color
+                inputContainer.isOpaque = true
+            }
+            container = current.superview
+            depth += 1
+        }
     }
 
     func updateKeyFonts() {
