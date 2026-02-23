@@ -108,6 +108,7 @@ final class KeyboardViewController: UIInputViewController {
     private var keyButtons: [UIButton] = []
     private var functionLayerTextButtons: [String: UIButton] = [:]
     private var keyboardHeightConstraint: NSLayoutConstraint?
+    private let keyFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
 
     private var currentLayer: KeyboardLayer = .letters
     private var isShiftEnabled = false
@@ -121,6 +122,7 @@ final class KeyboardViewController: UIInputViewController {
         installKeyboardHeightConstraintIfNeeded()
         configureRootStack()
         renderKeyboard()
+        prepareHaptics()
     }
 
     override func updateViewConstraints() {
@@ -131,6 +133,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         applyTheme()
+        prepareHaptics()
     }
 
     override func viewWillLayoutSubviews() {
@@ -578,7 +581,22 @@ private extension KeyboardViewController {
         guard let action = actionByButtonTag[sender.tag] else {
             return
         }
+        performKeyHapticFeedback(for: action)
         apply(action: action)
+    }
+
+    func prepareHaptics() {
+        keyFeedbackGenerator.prepare()
+    }
+
+    func performKeyHapticFeedback(for action: KeyAction) {
+        // Keep keyboard-switch key silent to match system behavior.
+        if case .nextKeyboard = action {
+            return
+        }
+
+        keyFeedbackGenerator.impactOccurred(intensity: 0.8)
+        keyFeedbackGenerator.prepare()
     }
 
     func apply(action: KeyAction) {
