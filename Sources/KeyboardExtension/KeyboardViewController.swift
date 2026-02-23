@@ -204,7 +204,7 @@ private extension KeyboardViewController {
             KeySpec(title: "Ctrl", accessibilityLabel: "Control", action: .toggleControl, width: 1.0, style: .utility),
             KeySpec(title: "Alt", accessibilityLabel: "Alt", action: .toggleAlt, width: 1.0, style: .utility),
             KeySpec(title: "Tab", accessibilityLabel: "Tab", action: .tab, width: 1.0, style: .utility),
-            KeySpec(title: "Fn", accessibilityLabel: "Function and App Cursor Mode", action: .toggleFunction, width: 1.0, style: .utility),
+            KeySpec(title: "Fn", accessibilityLabel: "Function and ANSI Cursor Mode", action: .toggleFunction, width: 1.0, style: .utility),
             KeySpec(symbolName: "arrow.left", accessibilityLabel: "Left Arrow", action: .arrowLeft, width: 1.0, style: .utility),
             KeySpec(symbolName: "arrow.down", accessibilityLabel: "Down Arrow", action: .arrowDown, width: 1.0, style: .utility),
             KeySpec(symbolName: "arrow.up", accessibilityLabel: "Up Arrow", action: .arrowUp, width: 1.0, style: .utility),
@@ -727,7 +727,13 @@ private extension KeyboardViewController {
             modifiers.insert(.control)
         }
 
-        let mode: TerminalEscapeSequences.CursorMode = isFunctionEnabled ? .application : .normal
+        // Default mode targets browser terminals where ESC-prefixed keys are unreliable on iOS.
+        if !isFunctionEnabled, modifiers.isEmpty, let readline = TerminalEscapeSequences.readlineNavigation(for: key) {
+            textDocumentProxy.insertText(readline)
+            return
+        }
+
+        let mode: TerminalEscapeSequences.CursorMode = .normal
         let sequence = TerminalEscapeSequences.cursorKey(key, mode: mode, modifiers: modifiers)
         textDocumentProxy.insertText(sequence)
 

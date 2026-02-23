@@ -72,4 +72,13 @@ final class TerminalEscapeSequencesTests: XCTestCase {
             "\u{001B}[1;7C"
         )
     }
+
+    func testReadlineFallbackSequences() {
+        XCTAssertEqual(TerminalEscapeSequences.readlineNavigation(for: .left), "\u{0002}")
+        XCTAssertEqual(TerminalEscapeSequences.readlineNavigation(for: .right), "\u{0006}")
+        XCTAssertEqual(TerminalEscapeSequences.readlineNavigation(for: .up), "\u{0010}")
+        XCTAssertEqual(TerminalEscapeSequences.readlineNavigation(for: .down), "\u{000E}")
+        XCTAssertEqual(TerminalEscapeSequences.readlineNavigation(for: .home), "\u{0001}")
+        XCTAssertEqual(TerminalEscapeSequences.readlineNavigation(for: .end), "\u{0005}")
+    }
 }

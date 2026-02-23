@@ -42,6 +42,23 @@ enum TerminalEscapeSequences {
         return "\u{001B}[1;\(modifierParameter)\(suffix)"
     }
 
+    static func readlineNavigation(for key: CursorKey) -> String? {
+        switch key {
+        case .up:
+            return "\u{0010}" // C-p
+        case .down:
+            return "\u{000E}" // C-n
+        case .left:
+            return "\u{0002}" // C-b
+        case .right:
+            return "\u{0006}" // C-f
+        case .home:
+            return "\u{0001}" // C-a
+        case .end:
+            return "\u{0005}" // C-e
+        }
+    }
+
     private static func finalCharacter(for key: CursorKey) -> String {
         switch key {
         case .up:
