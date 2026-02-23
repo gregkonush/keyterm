@@ -6,7 +6,7 @@ KeyTerm adds terminal-friendly keys that the default iPhone keyboard is missing:
 
 ## Keyboard Screenshot
 
-![KeyTerm custom keyboard in iOS Simulator](docs/images/emulator-keyboard.png)
+![KeyTerm custom keyboard in iOS Simulator](docs/images/emulator-keyboard-v2.png)
 
 ## First-Time Setup (Real iPhone)
 
