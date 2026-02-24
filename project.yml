@@ -58,7 +58,7 @@ targets:
             IsASCIICapable: true
             PrefersRightToLeft: false
             PrimaryLanguage: en-US
-            RequestsOpenAccess: false
+            RequestsOpenAccess: true
           NSExtensionPointIdentifier: com.apple.keyboard-service
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).KeyboardViewController"
     settings:
@@ -79,6 +79,7 @@ targets:
     sources:
       - path: Tests/KeyboardExtensionTests
       - path: Sources/KeyboardExtension/KeyboardThemePalette.swift
+      - path: Sources/KeyboardExtension/KeyboardHapticFeedback.swift
       - path: Sources/KeyboardExtension/TerminalEscapeSequences.swift
       - path: Sources/KeyboardExtension/KeyboardViewController.swift
     dependencies:

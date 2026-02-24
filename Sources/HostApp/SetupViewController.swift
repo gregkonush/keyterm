@@ -88,7 +88,7 @@ private extension SetupViewController {
         titleLabel.numberOfLines = 0
         titleLabel.adjustsFontForContentSizeCategory = true
 
-        subtitleLabel.text = "Add KeyTerm in iOS Keyboard settings, then switch to it from globe in terminal input."
+        subtitleLabel.text = "Add KeyTerm, allow Full Access for haptics, then switch from globe in terminal input."
         subtitleLabel.textColor = .secondaryLabel
         subtitleLabel.font = .preferredFont(forTextStyle: .body)
         subtitleLabel.numberOfLines = 0
@@ -143,7 +143,8 @@ private extension SetupViewController {
         let rows = [
             makeStepRow(index: 1, text: "Open Keyboard Settings"),
             makeStepRow(index: 2, text: "Add KeyTerm Keyboard"),
-            makeStepRow(index: 3, text: "In terminal input, switch with globe")
+            makeStepRow(index: 3, text: "Enable Allow Full Access"),
+            makeStepRow(index: 4, text: "In terminal input, switch with globe")
         ]
         rows.forEach(stepsStack.addArrangedSubview)
     }
@@ -315,7 +316,7 @@ private extension SetupViewController {
             statusIconView.image = UIImage(systemName: "arrow.trianglehead.2.clockwise.rotate.90")
             statusIconView.tintColor = .systemBlue
             statusTitleLabel.text = "Finish setup"
-            statusBodyLabel.text = "Add KeyTerm Keyboard in Settings, then return and confirm."
+            statusBodyLabel.text = "Add KeyTerm, enable Full Access, then return and confirm."
             confirmEnabledButton.isEnabled = true
             confirmEnabledButton.alpha = 1
         } else {
@@ -323,7 +324,7 @@ private extension SetupViewController {
             statusCard.layer.borderColor = UIColor.separator.withAlphaComponent(0.35).cgColor
             statusIconView.image = UIImage(systemName: "1.circle.fill")
             statusIconView.tintColor = .systemBlue
-            statusTitleLabel.text = "Step 1 of 3"
+            statusTitleLabel.text = "Step 1 of 4"
             statusBodyLabel.text = "Open Keyboard Settings to start."
             confirmEnabledButton.isEnabled = true
             confirmEnabledButton.alpha = 1
@@ -389,7 +390,7 @@ private extension SetupViewController {
 
     func showManualPathAlert() {
         let message =
-            "Settings -> General -> Keyboard -> Keyboards -> Add New Keyboard... -> KeyTerm Keyboard"
+            "Settings -> General -> Keyboard -> Keyboards -> Add New Keyboard... -> KeyTerm Keyboard -> Allow Full Access"
         let alert = UIAlertController(title: "Open Manually", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Open App Settings", style: .default) { [weak self] _ in
             self?.openFallbackSettings()

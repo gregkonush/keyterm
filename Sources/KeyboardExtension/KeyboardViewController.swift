@@ -11,11 +11,18 @@ final class KeyboardViewController: UIInputViewController {
         static let horizontalInset: CGFloat = 6
         static let topInset: CGFloat = 0
         static let bottomInset: CGFloat = 4
-        static let rowSpacing: CGFloat = 4
-        static let keySpacing: CGFloat = 4
+        static let rowSpacing: CGFloat = 5
+        static let keySpacing: CGFloat = 5
         static let topRowHeight: CGFloat = 24
         static let rowHeight: CGFloat = 44
         static let bottomRowHeight: CGFloat = 46
+    }
+
+    fileprivate enum DeleteRepeatTiming {
+        static let initialDelay: TimeInterval = 0.36
+        static let characterInterval: TimeInterval = 0.085
+        static let wordInterval: TimeInterval = 0.16
+        static let characterDeleteThreshold = 10
     }
 
     fileprivate enum KeyAction {
@@ -106,13 +113,23 @@ final class KeyboardViewController: UIInputViewController {
 
     private var keyButtons: [UIButton] = []
     private var functionLayerTextButtons: [String: UIButton] = [:]
-    private let keyFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+    private let keyHaptics = KeyboardHapticFeedback()
+    private var deleteStartTimer: Timer?
+    private var deleteRepeatTimer: Timer?
+    private var deleteMode: DeleteRepeatMode = .character
+    private var isDeleteKeyHeld = false
+    private var didRunDeleteRepeat = false
+    private var deleteRepeatCharacterCount = 0
 
     private var currentLayer: KeyboardLayer = .letters
     private var isShiftEnabled = false
     private var isControlEnabled = false
     private var isAltEnabled = false
     private var isFunctionEnabled = false
+
+    deinit {
+        stopDeleteHoldTracking()
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -147,6 +164,11 @@ final class KeyboardViewController: UIInputViewController {
 }
 
 private extension KeyboardViewController {
+    enum DeleteRepeatMode {
+        case character
+        case word
+    }
+
     func configureRootStack() {
         rootStack.axis = .vertical
         rootStack.spacing = Layout.rowSpacing
@@ -166,6 +188,8 @@ private extension KeyboardViewController {
     }
 
     func renderKeyboard() {
+        stopDeleteHoldTracking()
+
         rootStack.arrangedSubviews.forEach {
             rootStack.removeArrangedSubview($0)
             $0.removeFromSuperview()
@@ -417,7 +441,8 @@ private extension KeyboardViewController {
     func makeKeyButton(for key: KeySpec) -> UIButton {
         let button = UIButton(type: .system)
         button.backgroundColor = keyBackgroundColor(for: key.style)
-        button.layer.cornerRadius = key.style == .utility ? 7 : 8
+        button.layer.cornerCurve = .continuous
+        button.layer.cornerRadius = keyCornerRadius(for: key.style)
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOpacity = resolvedInterfaceStyle() == .dark ? 0.22 : 0.06
         button.layer.shadowRadius = 0
@@ -444,7 +469,13 @@ private extension KeyboardViewController {
         actionByButtonTag[tag] = key.action
         keyStyleByTag[tag] = key.style
         button.tag = tag
+        button.addTarget(self, action: #selector(onKeyTouchDown(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(onKeyTap(_:)), for: .touchUpInside)
+        button.addTarget(
+            self,
+            action: #selector(onKeyTouchCancel(_:)),
+            for: [.touchUpOutside, .touchCancel, .touchDragExit]
+        )
 
         keyButtons.append(button)
 
@@ -469,6 +500,15 @@ private extension KeyboardViewController {
         }
 
         return button
+    }
+
+    func keyCornerRadius(for style: KeyStyle) -> CGFloat {
+        switch style {
+        case .utility:
+            return 9
+        case .character, .action:
+            return 10
+        }
     }
 
     func resolvedInterfaceStyle() -> UIUserInterfaceStyle {
@@ -566,12 +606,42 @@ private extension KeyboardViewController {
         guard let action = actionByButtonTag[sender.tag] else {
             return
         }
-        performKeyHapticFeedback(for: action)
+
+        if case .backspace = action {
+            let shouldSuppressTapDelete = didRunDeleteRepeat
+            stopDeleteHoldTracking()
+            if shouldSuppressTapDelete {
+                return
+            }
+        }
         apply(action: action)
     }
 
+    @objc
+    func onKeyTouchDown(_ sender: UIButton) {
+        guard let action = actionByButtonTag[sender.tag] else {
+            return
+        }
+        performKeyHapticFeedback(for: action)
+
+        if case .backspace = action {
+            startDeleteHoldTracking()
+        }
+    }
+
+    @objc
+    func onKeyTouchCancel(_ sender: UIButton) {
+        guard let action = actionByButtonTag[sender.tag] else {
+            return
+        }
+
+        if case .backspace = action {
+            stopDeleteHoldTracking()
+        }
+    }
+
     func prepareHaptics() {
-        keyFeedbackGenerator.prepare()
+        keyHaptics.prepare()
     }
 
     func performKeyHapticFeedback(for action: KeyAction) {
@@ -580,8 +650,101 @@ private extension KeyboardViewController {
             return
         }
 
-        keyFeedbackGenerator.impactOccurred(intensity: 0.8)
-        keyFeedbackGenerator.prepare()
+        keyHaptics.emitKeyTap()
+    }
+
+    func startDeleteHoldTracking() {
+        stopDeleteHoldTracking()
+
+        isDeleteKeyHeld = true
+        didRunDeleteRepeat = false
+        deleteMode = .character
+        deleteRepeatCharacterCount = 0
+
+        let timer = Timer(
+            timeInterval: DeleteRepeatTiming.initialDelay,
+            repeats: false
+        ) { [weak self] _ in
+            self?.beginDeleteRepeating()
+        }
+        deleteStartTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    func beginDeleteRepeating() {
+        guard isDeleteKeyHeld else {
+            stopDeleteHoldTracking()
+            return
+        }
+
+        didRunDeleteRepeat = true
+        runDeleteRepeatTick()
+        scheduleDeleteRepeatTimer(interval: DeleteRepeatTiming.characterInterval)
+    }
+
+    func scheduleDeleteRepeatTimer(interval: TimeInterval) {
+        deleteRepeatTimer?.invalidate()
+        deleteRepeatTimer = nil
+
+        let timer = Timer(
+            timeInterval: interval,
+            repeats: true
+        ) { [weak self] _ in
+            self?.runDeleteRepeatTick()
+        }
+        deleteRepeatTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    func runDeleteRepeatTick() {
+        guard isDeleteKeyHeld else {
+            stopDeleteHoldTracking()
+            return
+        }
+
+        switch deleteMode {
+        case .character:
+            textDocumentProxy.deleteBackward()
+            deleteRepeatCharacterCount += 1
+            if deleteRepeatCharacterCount >= DeleteRepeatTiming.characterDeleteThreshold {
+                deleteMode = .word
+                scheduleDeleteRepeatTimer(interval: DeleteRepeatTiming.wordInterval)
+            }
+        case .word:
+            deleteWordBackward()
+        }
+    }
+
+    func deleteWordBackward() {
+        guard
+            let context = textDocumentProxy.documentContextBeforeInput,
+            !context.isEmpty
+        else {
+            textDocumentProxy.deleteBackward()
+            return
+        }
+
+        let deleteCount = KeyboardDeletePlanner.backwardDeleteCount(in: context)
+        if deleteCount <= 0 {
+            textDocumentProxy.deleteBackward()
+            return
+        }
+
+        for _ in 0..<deleteCount {
+            textDocumentProxy.deleteBackward()
+        }
+    }
+
+    func stopDeleteHoldTracking() {
+        isDeleteKeyHeld = false
+        deleteMode = .character
+        deleteRepeatCharacterCount = 0
+
+        deleteStartTimer?.invalidate()
+        deleteStartTimer = nil
+
+        deleteRepeatTimer?.invalidate()
+        deleteRepeatTimer = nil
     }
 
     func apply(action: KeyAction) {
@@ -784,5 +947,86 @@ private extension KeyboardViewController {
             }
         }
         updateKeyFonts()
+    }
+}
+
+enum KeyboardDeletePlanner {
+    static func backwardDeleteCount(in contextBeforeCursor: String) -> Int {
+        guard !contextBeforeCursor.isEmpty else {
+            return 0
+        }
+
+        let totalUTF16 = contextBeforeCursor.utf16.count
+        let trailingWhitespaceUTF16 = trailingWhitespaceUTF16Count(in: contextBeforeCursor)
+        let trimmedEndUTF16 = totalUTF16 - trailingWhitespaceUTF16
+
+        guard trimmedEndUTF16 > 0 else {
+            return contextBeforeCursor.count
+        }
+
+        let tokenizer = CFStringTokenizerCreate(
+            kCFAllocatorDefault,
+            contextBeforeCursor as CFString,
+            CFRange(location: 0, length: totalUTF16),
+            CFOptionFlags(kCFStringTokenizerUnitWordBoundary),
+            Locale.current as CFLocale
+        )
+
+        let tokenType = CFStringTokenizerGoToTokenAtIndex(tokenizer, trimmedEndUTF16 - 1)
+        let tokenRange = CFStringTokenizerGetCurrentTokenRange(tokenizer)
+
+        guard
+            tokenType.rawValue != 0,
+            tokenRange.location != kCFNotFound,
+            tokenRange.length > 0,
+            tokenRange.location < trimmedEndUTF16,
+            let tokenStart = stringIndex(atUTF16Offset: tokenRange.location, in: contextBeforeCursor)
+        else {
+            return fallbackDeleteCount(in: contextBeforeCursor)
+        }
+
+        return contextBeforeCursor[tokenStart..<contextBeforeCursor.endIndex].count
+    }
+
+    private static func trailingWhitespaceUTF16Count(in text: String) -> Int {
+        let whitespaceSet = CharacterSet.whitespacesAndNewlines
+        var count = 0
+
+        for character in text.reversed() {
+            guard isWhitespace(character, set: whitespaceSet) else {
+                break
+            }
+            count += String(character).utf16.count
+        }
+
+        return count
+    }
+
+    private static func fallbackDeleteCount(in text: String) -> Int {
+        let whitespaceSet = CharacterSet.whitespacesAndNewlines
+        let characters = Array(text)
+
+        var index = characters.count
+        while index > 0, isWhitespace(characters[index - 1], set: whitespaceSet) {
+            index -= 1
+        }
+        while index > 0, !isWhitespace(characters[index - 1], set: whitespaceSet) {
+            index -= 1
+        }
+
+        return characters.count - index
+    }
+
+    private static func stringIndex(atUTF16Offset offset: Int, in text: String) -> String.Index? {
+        guard offset >= 0, offset <= text.utf16.count else {
+            return nil
+        }
+
+        let utf16Index = text.utf16.index(text.utf16.startIndex, offsetBy: offset)
+        return String.Index(utf16Index, within: text)
+    }
+
+    private static func isWhitespace(_ character: Character, set: CharacterSet) -> Bool {
+        character.unicodeScalars.allSatisfy { set.contains($0) }
     }
 }

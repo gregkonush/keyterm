@@ -10,13 +10,17 @@
 		00ECA9597CB911379E73A137 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B96BDD103299C23354355B /* SceneDelegate.swift */; };
 		123CC654BBE1679C67D76BC9 /* TerminalEscapeSequencesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7514FC7C07A1AF2CEC63F08 /* TerminalEscapeSequencesTests.swift */; };
 		1DE760A63D11F6E33A938E00 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */; };
+		39F972FF6921309B3D599ACD /* KeyboardHapticFeedbackTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF69F4059DB7029CA983ACCE /* KeyboardHapticFeedbackTests.swift */; };
+		3E785C3B87ADA356CE36F1AF /* KeyboardHapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F231A4BD5A7D18F262778C8 /* KeyboardHapticFeedback.swift */; };
 		41105AD68E3F8B9B8FCCAFD2 /* KeyboardThemePaletteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0546F10CD751F1BA8ABE6873 /* KeyboardThemePaletteTests.swift */; };
+		512196A798FBD9A9D04FDDA2 /* KeyboardHapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F231A4BD5A7D18F262778C8 /* KeyboardHapticFeedback.swift */; };
 		515F62E6C3CF69545049413D /* KeyboardThemePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC471F53D96D3888EB743F5F /* KeyboardThemePalette.swift */; };
 		67623F4DB7AFC83C07C46A99 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */; };
 		6D4BDEC5754C652423AEBAA3 /* KeyboardThemePalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC471F53D96D3888EB743F5F /* KeyboardThemePalette.swift */; };
 		7437B980FD0D6442BA9D4BF1 /* TerminalEscapeSequences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CCDE2737972ACA54AC7AD4 /* TerminalEscapeSequences.swift */; };
 		8AB7A03D0578760DB7C3F822 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171C8D560B933C293926382F /* AppDelegate.swift */; };
 		A20D9BC8DAC143A8B46CF0A7 /* SetupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F90D9F5510E13267FC0115C /* SetupViewController.swift */; };
+		B1158011E989B75B9E20E02B /* KeyboardDeletePlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47CEEB4ED67BF3C36E69BC75 /* KeyboardDeletePlannerTests.swift */; };
 		C729810433610CA3EA3EF5C6 /* KeyboardLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84B71F39BE5E3311416C44BC /* KeyboardLayoutTests.swift */; };
 		D97E33B1C8F546ECAE84996E /* TerminalEscapeSequences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27CCDE2737972ACA54AC7AD4 /* TerminalEscapeSequences.swift */; };
 		FBF1316F37211437F252F1DE /* KeyTermKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E84FBBBA2E403371A867D319 /* KeyTermKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -56,10 +60,12 @@
 /* Begin PBXFileReference section */
 		03A1C72A91774D7BA83B1609 /* KeyTerm.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = KeyTerm.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0546F10CD751F1BA8ABE6873 /* KeyboardThemePaletteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardThemePaletteTests.swift; sourceTree = "<group>"; };
+		0F231A4BD5A7D18F262778C8 /* KeyboardHapticFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHapticFeedback.swift; sourceTree = "<group>"; };
 		171C8D560B933C293926382F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		26423F5BBA8CBC1B5BBEA060 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		27CCDE2737972ACA54AC7AD4 /* TerminalEscapeSequences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalEscapeSequences.swift; sourceTree = "<group>"; };
 		3F90D9F5510E13267FC0115C /* SetupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupViewController.swift; sourceTree = "<group>"; };
+		47CEEB4ED67BF3C36E69BC75 /* KeyboardDeletePlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDeletePlannerTests.swift; sourceTree = "<group>"; };
 		6A49C1FD80D799B77D9E11FB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		84B71F39BE5E3311416C44BC /* KeyboardLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayoutTests.swift; sourceTree = "<group>"; };
 		92B96BDD103299C23354355B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -68,6 +74,7 @@
 		E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		E5B1925DE8BF3EC228934A6E /* KeyTermKeyboardTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = KeyTermKeyboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E84FBBBA2E403371A867D319 /* KeyTermKeyboard.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = KeyTermKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF69F4059DB7029CA983ACCE /* KeyboardHapticFeedbackTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHapticFeedbackTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -94,6 +101,8 @@
 		95499CDE0465AF7FCA004019 /* KeyboardExtensionTests */ = {
 			isa = PBXGroup;
 			children = (
+				47CEEB4ED67BF3C36E69BC75 /* KeyboardDeletePlannerTests.swift */,
+				EF69F4059DB7029CA983ACCE /* KeyboardHapticFeedbackTests.swift */,
 				84B71F39BE5E3311416C44BC /* KeyboardLayoutTests.swift */,
 				0546F10CD751F1BA8ABE6873 /* KeyboardThemePaletteTests.swift */,
 				D7514FC7C07A1AF2CEC63F08 /* TerminalEscapeSequencesTests.swift */,
@@ -106,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				6A49C1FD80D799B77D9E11FB /* Info.plist */,
+				0F231A4BD5A7D18F262778C8 /* KeyboardHapticFeedback.swift */,
 				BC471F53D96D3888EB743F5F /* KeyboardThemePalette.swift */,
 				E0178F7BF6EA5A6C4D0728E1 /* KeyboardViewController.swift */,
 				27CCDE2737972ACA54AC7AD4 /* TerminalEscapeSequences.swift */,
@@ -228,6 +238,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				512196A798FBD9A9D04FDDA2 /* KeyboardHapticFeedback.swift in Sources */,
 				515F62E6C3CF69545049413D /* KeyboardThemePalette.swift in Sources */,
 				67623F4DB7AFC83C07C46A99 /* KeyboardViewController.swift in Sources */,
 				7437B980FD0D6442BA9D4BF1 /* TerminalEscapeSequences.swift in Sources */,
@@ -248,6 +259,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1158011E989B75B9E20E02B /* KeyboardDeletePlannerTests.swift in Sources */,
+				3E785C3B87ADA356CE36F1AF /* KeyboardHapticFeedback.swift in Sources */,
+				39F972FF6921309B3D599ACD /* KeyboardHapticFeedbackTests.swift in Sources */,
 				C729810433610CA3EA3EF5C6 /* KeyboardLayoutTests.swift in Sources */,
 				6D4BDEC5754C652423AEBAA3 /* KeyboardThemePalette.swift in Sources */,
 				41105AD68E3F8B9B8FCCAFD2 /* KeyboardThemePaletteTests.swift in Sources */,

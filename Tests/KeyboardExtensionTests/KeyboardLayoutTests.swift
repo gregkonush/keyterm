@@ -2,6 +2,46 @@ import UIKit
 import XCTest
 
 final class KeyboardLayoutTests: XCTestCase {
+    func testKeyboardSpacingMatchesTunedLayout() {
+        let sut = KeyboardViewController()
+        sut.loadViewIfNeeded()
+
+        guard let rootStack = sut.view.subviews.compactMap({ $0 as? UIStackView }).first else {
+            XCTFail("Expected a root keyboard stack view")
+            return
+        }
+
+        XCTAssertEqual(rootStack.spacing, 5)
+
+        guard
+            let firstRow = rootStack.arrangedSubviews.first,
+            let firstRowStack = firstRow.subviews.compactMap({ $0 as? UIStackView }).first
+        else {
+            XCTFail("Expected a stack inside first row")
+            return
+        }
+
+        XCTAssertEqual(firstRowStack.spacing, 5)
+    }
+
+    func testKeyboardKeysUseContinuousRoundedCorners() {
+        let sut = KeyboardViewController()
+        sut.loadViewIfNeeded()
+
+        guard
+            let rootStack = sut.view.subviews.compactMap({ $0 as? UIStackView }).first,
+            let firstRow = rootStack.arrangedSubviews.first,
+            let firstRowStack = firstRow.subviews.compactMap({ $0 as? UIStackView }).first,
+            let firstButton = firstRowStack.arrangedSubviews.compactMap({ $0 as? UIButton }).first
+        else {
+            XCTFail("Expected at least one key button")
+            return
+        }
+
+        XCTAssertEqual(firstButton.layer.cornerCurve, .continuous)
+        XCTAssertEqual(firstButton.layer.cornerRadius, 9)
+    }
+
     func testRowsUseNonRequiredPreferredHeights() {
         let sut = KeyboardViewController()
         sut.loadViewIfNeeded()
